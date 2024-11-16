@@ -13,7 +13,7 @@ import {
 
 const Students = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSection, setSelectedSection] = useState("");
+  const [selectedSection, setSelectedSection] = useState("all");
 
   const students = [
     {
@@ -31,7 +31,7 @@ const Students = () => {
       student.studentNumber.includes(searchQuery) ||
       student.email.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesSection = selectedSection ? student.section === selectedSection : true;
+    const matchesSection = selectedSection === "all" ? true : student.section === selectedSection;
     
     return matchesSearch && matchesSection;
   });
@@ -66,7 +66,7 @@ const Students = () => {
               <SelectValue placeholder="Select section" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Sections</SelectItem>
+              <SelectItem value="all">All Sections</SelectItem>
               <SelectItem value="BSCS 2-3">BSCS 2-3</SelectItem>
               {/* Add more sections as needed */}
             </SelectContent>
