@@ -14,7 +14,7 @@ const Index = () => {
           <p className="text-gray-500">Here's what's happening with your students today.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
           <StudentCard />
           <StudentChart />
         </div>
