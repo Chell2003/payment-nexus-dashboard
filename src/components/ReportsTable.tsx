@@ -7,34 +7,38 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ReportsTableProps {
   searchQuery: string;
 }
 
-const reports = [
-  {
-    studentNumber: "202110305",
-    name: "Jelixces Cajontoy",
-    status: "paid",
-    section: "BSCS 2-3",
-    amount: 100,
-  },
-  {
-    studentNumber: "202110305",
-    name: "Jelixces Cajontoy",
-    status: "paid",
-    section: "BSCS 2-3",
-    amount: 100,
-  },
-];
-
 const ReportsTable = ({ searchQuery }: ReportsTableProps) => {
+  const { data: reports = [], isLoading } = useQuery({
+    queryKey: ['reports'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('payments')
+        .select(`
+          *,
+          student:students(*)
+        `);
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
   const filteredReports = reports.filter(
     (report) =>
-      report.studentNumber.includes(searchQuery) ||
-      report.name.toLowerCase().includes(searchQuery.toLowerCase())
+      report.student?.student_number?.includes(searchQuery) ||
+      report.student?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (isLoading) {
+    return <div className="text-center py-4">Loading...</div>;
+  }
 
   return (
     <div className="overflow-x-auto">
@@ -46,29 +50,35 @@ const ReportsTable = ({ searchQuery }: ReportsTableProps) => {
             <TableHead>Status</TableHead>
             <TableHead>Year & Section</TableHead>
             <TableHead>Amount</TableHead>
+            <TableHead>Date</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredReports.map((report, index) => (
-            <TableRow key={index}>
-              <TableCell>{report.studentNumber}</TableCell>
-              <TableCell>{report.name}</TableCell>
-              <TableCell>
-                <Badge
-                  variant="outline"
-                  className={`${
-                    report.status === "paid"
-                      ? "border-green-500 text-green-500"
-                      : "border-red-500 text-red-500"
-                  }`}
-                >
-                  {report.status}
-                </Badge>
+          {filteredReports.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center">
+                No reports found
               </TableCell>
-              <TableCell>{report.section}</TableCell>
-              <TableCell>{report.amount}</TableCell>
             </TableRow>
-          ))}
+          ) : (
+            filteredReports.map((report) => (
+              <TableRow key={report.id}>
+                <TableCell>{report.student?.student_number}</TableCell>
+                <TableCell>{report.student?.name}</TableCell>
+                <TableCell>
+                  <Badge
+                    variant="outline"
+                    className="border-green-500 text-green-500"
+                  >
+                    paid
+                  </Badge>
+                </TableCell>
+                <TableCell>{report.student?.yearandsection}</TableCell>
+                <TableCell>₱{report.amount_paid}</TableCell>
+                <TableCell>{new Date(report.payment_date || '').toLocaleDateString()}</TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

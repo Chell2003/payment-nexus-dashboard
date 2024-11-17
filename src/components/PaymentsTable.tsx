@@ -7,25 +7,53 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-
-const payments = [
-  {
-    studentNumber: "202110305",
-    name: "Jelixces Cajontoy",
-    email: "jelixcescajontoy539@gmail.com",
-    section: "BSCS 2-3",
-    status: "paid",
-  },
-  {
-    studentNumber: "202110306",
-    name: "John Smith",
-    email: "john.smith@gmail.com",
-    section: "BSCS 2-3",
-    status: "not paid",
-  },
-];
+import { Button } from "@/components/ui/button";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
+import { toast } from "sonner";
 
 const PaymentsTable = () => {
+  const queryClient = useQueryClient();
+
+  const { data: payments = [], isLoading } = useQuery({
+    queryKey: ['payments'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('payments')
+        .select(`
+          *,
+          student:students(*)
+        `);
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const deletePayment = useMutation({
+    mutationFn: async (id: number) => {
+      const { error } = await supabase
+        .from('payments')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      toast.success('Payment deleted successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete payment');
+      console.error('Error:', error);
+    }
+  });
+
+  if (isLoading) {
+    return <div className="text-center py-4">Loading...</div>;
+  }
+
   return (
     <div className="border rounded-lg">
       <Table>
@@ -35,30 +63,40 @@ const PaymentsTable = () => {
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Year & Section</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>Amount</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {payments.map((payment) => (
-            <TableRow key={payment.studentNumber}>
-              <TableCell>{payment.studentNumber}</TableCell>
-              <TableCell>{payment.name}</TableCell>
-              <TableCell>{payment.email}</TableCell>
-              <TableCell>{payment.section}</TableCell>
-              <TableCell>
-                <Badge
-                  variant="outline"
-                  className={`${
-                    payment.status === "paid"
-                      ? "border-green-500 text-green-500"
-                      : "border-red-500 text-red-500"
-                  }`}
-                >
-                  {payment.status}
-                </Badge>
+          {payments.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center">
+                No payments found
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            payments.map((payment) => (
+              <TableRow key={payment.id}>
+                <TableCell>{payment.student?.student_number}</TableCell>
+                <TableCell>{payment.student?.name}</TableCell>
+                <TableCell>{payment.student?.email}</TableCell>
+                <TableCell>{payment.student?.yearandsection}</TableCell>
+                <TableCell>₱{payment.amount_paid}</TableCell>
+                <TableCell>{new Date(payment.payment_date || '').toLocaleDateString()}</TableCell>
+                <TableCell className="space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                    onClick={() => deletePayment.mutate(payment.id)}
+                  >
+                    Delete
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>
