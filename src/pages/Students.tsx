@@ -10,28 +10,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
 
 const Students = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSection, setSelectedSection] = useState("all");
 
-  const students = [
-    {
-      studentNumber: "202110305",
-      name: "Jelixces Cajontoy",
-      email: "jelixcescajontoy539@gmail.com",
-      section: "BSCS 2-3",
-    },
-    // Add more student data as needed
-  ];
+  const { data: students = [], isLoading } = useQuery({
+    queryKey: ['students'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('students')
+        .select('*');
+      
+      if (error) throw error;
+      return data as Tables<'students'>[];
+    }
+  });
 
   const filteredStudents = students.filter((student) => {
     const matchesSearch = 
-      student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.studentNumber.includes(searchQuery) ||
-      student.email.toLowerCase().includes(searchQuery.toLowerCase());
+      (student.name?.toLowerCase().includes(searchQuery.toLowerCase()) || false) ||
+      (student.student_number?.includes(searchQuery) || false) ||
+      (student.email?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
     
-    const matchesSection = selectedSection === "all" ? true : student.section === selectedSection;
+    const matchesSection = selectedSection === "all" ? true : student.yearandsection === selectedSection;
     
     return matchesSearch && matchesSection;
   });
@@ -68,7 +73,6 @@ const Students = () => {
             <SelectContent>
               <SelectItem value="all">All Sections</SelectItem>
               <SelectItem value="BSCS 2-3">BSCS 2-3</SelectItem>
-              {/* Add more sections as needed */}
             </SelectContent>
           </Select>
         </div>
@@ -85,22 +89,36 @@ const Students = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredStudents.map((student) => (
-                <TableRow key={student.studentNumber}>
-                  <TableCell>{student.studentNumber}</TableCell>
-                  <TableCell>{student.name}</TableCell>
-                  <TableCell>{student.email}</TableCell>
-                  <TableCell>{student.section}</TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button variant="outline" size="sm" className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200">
-                      Update
-                    </Button>
-                    <Button variant="outline" size="sm" className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200">
-                      Delete
-                    </Button>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-4">
+                    Loading...
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : filteredStudents.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-4">
+                    No students found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredStudents.map((student) => (
+                  <TableRow key={student.id}>
+                    <TableCell>{student.student_number}</TableCell>
+                    <TableCell>{student.name}</TableCell>
+                    <TableCell>{student.email}</TableCell>
+                    <TableCell>{student.yearandsection}</TableCell>
+                    <TableCell className="text-right space-x-2">
+                      <Button variant="outline" size="sm" className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200">
+                        Update
+                      </Button>
+                      <Button variant="outline" size="sm" className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200">
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
