@@ -59,7 +59,6 @@ const PaymentsTable = () => {
           <TableRow>
             <TableHead>Student Number</TableHead>
             <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
             <TableHead>Year & Section</TableHead>
             <TableHead>Amount</TableHead>
             <TableHead>Date</TableHead>
@@ -78,7 +77,6 @@ const PaymentsTable = () => {
               <TableRow key={payment.id}>
                 <TableCell>{payment.student?.student_number}</TableCell>
                 <TableCell>{payment.student?.name}</TableCell>
-                <TableCell>{payment.student?.email}</TableCell>
                 <TableCell>{payment.student?.yearandsection}</TableCell>
                 <TableCell>₱{payment.amount_paid}</TableCell>
                 <TableCell>{new Date(payment.payment_date || '').toLocaleDateString()}</TableCell>
