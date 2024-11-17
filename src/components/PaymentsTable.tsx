@@ -22,11 +22,12 @@ const PaymentsTable = () => {
         .select(`
           *,
           student:students(*)
-        `);
+        `)
+        .order('payment_date', { ascending: false }); // Order by payment_date descending
       
       if (error) throw error;
       return data;
-    }
+    },
   });
 
   const deletePayment = useMutation({
@@ -45,7 +46,7 @@ const PaymentsTable = () => {
     onError: (error) => {
       toast.error('Failed to delete payment');
       console.error('Error:', error);
-    }
+    },
   });
 
   if (isLoading) {
