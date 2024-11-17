@@ -13,13 +13,13 @@ const StudentCard = () => {
           *,
           student:students(*)
         `)
-        .order('payment_date', { ascending: false })
+        .order('id', { ascending: false }) // Order by ID to get the latest entry
         .limit(1)
         .single();
-      
+
       if (error) throw error;
       return data;
-    }
+    },
   });
 
   if (isLoading) {
