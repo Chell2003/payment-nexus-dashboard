@@ -23,7 +23,7 @@ const PaymentsTable = () => {
           *,
           student:students(*)
         `)
-        .order('payment_date', { ascending: false }); // Order by payment_date descending
+        .order('id', { ascending: false }); // Order by id descending (latest first)
       
       if (error) throw error;
       return data;
