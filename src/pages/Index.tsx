@@ -15,13 +15,7 @@ const Index = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <StudentCard
-            studentNumber="202110305"
-            name="Jelixces Cajontoy"
-            email="jelixcescajontoy539@gmail.com"
-            phone="09487112541"
-            section="BSCS 2-3"
-          />
+          <StudentCard />
           <StudentChart />
         </div>
 

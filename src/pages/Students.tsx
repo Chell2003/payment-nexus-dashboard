@@ -14,14 +14,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import StudentForm from "@/components/StudentForm";
 
 const Students = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,12 +32,12 @@ const Students = () => {
         .select('*');
       
       if (error) throw error;
-      return data as Tables<'students'>[];
+      return data;
     }
   });
 
   const createStudent = useMutation({
-    mutationFn: async (formData: Partial<Tables<'students'>>) => {
+    mutationFn: async (formData: Omit<Tables<'students'>, 'id'>) => {
       const { data, error } = await supabase
         .from('students')
         .insert([formData])
@@ -65,11 +59,12 @@ const Students = () => {
   });
 
   const updateStudent = useMutation({
-    mutationFn: async (formData: Partial<Tables<'students'>>) => {
+    mutationFn: async (formData: Omit<Tables<'students'>, 'id'>) => {
+      if (!editingStudent?.id) return;
       const { data, error } = await supabase
         .from('students')
         .update(formData)
-        .eq('id', editingStudent?.id)
+        .eq('id', editingStudent.id)
         .select()
         .single();
       
@@ -107,17 +102,7 @@ const Students = () => {
     }
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      student_number: formData.get('student_number') as string,
-      name: formData.get('name') as string,
-      email: formData.get('email') as string,
-      phone: formData.get('phone') as string,
-      yearandsection: formData.get('yearandsection') as string,
-    };
-
+  const handleSubmit = (data: Omit<Tables<'students'>, 'id'>) => {
     if (editingStudent) {
       updateStudent.mutate(data);
     } else {
@@ -152,62 +137,7 @@ const Students = () => {
                 + Add Student
               </Button>
             </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{editingStudent ? 'Edit Student' : 'Add New Student'}</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="student_number">Student Number</Label>
-                  <Input
-                    id="student_number"
-                    name="student_number"
-                    defaultValue={editingStudent?.student_number}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    defaultValue={editingStudent?.name}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    defaultValue={editingStudent?.email}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    defaultValue={editingStudent?.phone}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="yearandsection">Year and Section</Label>
-                  <Input
-                    id="yearandsection"
-                    name="yearandsection"
-                    defaultValue={editingStudent?.yearandsection}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full">
-                  {editingStudent ? 'Update Student' : 'Add Student'}
-                </Button>
-              </form>
-            </DialogContent>
+            <StudentForm onSubmit={handleSubmit} defaultValues={editingStudent || undefined} />
           </Dialog>
         </div>
 
