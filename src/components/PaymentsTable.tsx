@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Printer } from "lucide-react";
 
 const PaymentsTable = () => {
   const queryClient = useQueryClient();
@@ -23,7 +24,7 @@ const PaymentsTable = () => {
           *,
           student:students(*)
         `)
-        .order('id', { ascending: false }); // Order by id descending (latest first)
+        .order('id', { ascending: false });
       
       if (error) throw error;
       return data;
@@ -48,6 +49,45 @@ const PaymentsTable = () => {
       console.error('Error:', error);
     },
   });
+
+  const printReceipt = (payment: any) => {
+    const receiptContent = `
+      <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 400px; margin: 0 auto;">
+        <h2 style="text-align: center;">Payment Receipt</h2>
+        <hr style="margin: 20px 0;" />
+        
+        <div style="margin-bottom: 20px;">
+          <p><strong>Receipt No:</strong> ${payment.id}</p>
+          <p><strong>Date:</strong> ${new Date(payment.payment_date).toLocaleDateString()}</p>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <h3>Student Information</h3>
+          <p><strong>Name:</strong> ${payment.student?.name}</p>
+          <p><strong>Student Number:</strong> ${payment.student?.student_number}</p>
+          <p><strong>Year & Section:</strong> ${payment.student?.yearandsection}</p>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <h3>Payment Details</h3>
+          <p><strong>Amount Paid:</strong> ₱${payment.amount_paid}</p>
+        </div>
+
+        <hr style="margin: 20px 0;" />
+        
+        <div style="text-align: center; font-size: 0.8em; color: #666;">
+          <p>Thank you for your payment!</p>
+        </div>
+      </div>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(receiptContent);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
 
   if (isLoading) {
     return <div className="text-center py-4">Loading...</div>;
@@ -82,6 +122,15 @@ const PaymentsTable = () => {
                 <TableCell>₱{payment.amount_paid}</TableCell>
                 <TableCell>{new Date(payment.payment_date || '').toLocaleDateString()}</TableCell>
                 <TableCell className="space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => printReceipt(payment)}
+                    className="bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-200"
+                  >
+                    <Printer className="h-4 w-4 mr-1" />
+                    Print
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
