@@ -15,7 +15,7 @@ import { Printer } from "lucide-react";
 const PaymentsTable = () => {
   const queryClient = useQueryClient();
 
-  const { data: payments = [], isLoading } = useQuery({
+  const { data: payments = [], isLoading, error } = useQuery({
     queryKey: ['payments'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -27,7 +27,7 @@ const PaymentsTable = () => {
         .order('id', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data || []; // Ensure we always return an array, even if empty
     },
   });
 
@@ -93,6 +93,10 @@ const PaymentsTable = () => {
     return <div className="text-center py-4">Loading...</div>;
   }
 
+  if (error) {
+    return <div className="text-center py-4 text-red-600">Error loading payments</div>;
+  }
+
   return (
     <div className="border rounded-lg">
       <Table>
@@ -109,7 +113,7 @@ const PaymentsTable = () => {
         <TableBody>
           {payments.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center">
+              <TableCell colSpan={6} className="text-center">
                 No payments found
               </TableCell>
             </TableRow>
