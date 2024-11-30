@@ -23,7 +23,7 @@ const Students = () => {
       const { data, error } = await supabase
         .from('students')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('id', { ascending: false });
       
       if (error) {
         toast.error('Failed to fetch students');
