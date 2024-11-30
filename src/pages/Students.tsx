@@ -1,21 +1,14 @@
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import StudentForm from "@/components/StudentForm";
+import StudentsTable from "@/components/StudentsTable";
+import StudentsSearch from "@/components/StudentsSearch";
 
 const Students = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,10 +22,14 @@ const Students = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('students')
-        .select('*');
+        .select('*')
+        .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (error) {
+        toast.error('Failed to fetch students');
+        throw error;
+      }
+      return data || [];
     }
   });
 
@@ -141,84 +138,23 @@ const Students = () => {
           </Dialog>
         </div>
 
-        <div className="flex gap-4 mb-6">
-          <div className="flex-1">
-            <Input
-              type="search"
-              placeholder="Search students..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full"
-            />
-          </div>
-          <Select value={selectedSection} onValueChange={setSelectedSection}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select section" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Sections</SelectItem>
-              <SelectItem value="BSCS 2-3">BSCS 2-3</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <StudentsSearch
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          selectedSection={selectedSection}
+          onSectionChange={setSelectedSection}
+        />
 
         <div className="bg-white rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Student Number</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Year & Section</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4">
-                    Loading...
-                  </TableCell>
-                </TableRow>
-              ) : filteredStudents.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4">
-                    No students found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredStudents.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell>{student.student_number}</TableCell>
-                    <TableCell>{student.name}</TableCell>
-                    <TableCell>{student.email}</TableCell>
-                    <TableCell>{student.yearandsection}</TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
-                        onClick={() => {
-                          setEditingStudent(student);
-                          setIsOpen(true);
-                        }}
-                      >
-                        Update
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
-                        onClick={() => deleteStudent.mutate(student.id)}
-                      >
-                        Delete
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          <StudentsTable
+            students={filteredStudents}
+            isLoading={isLoading}
+            onEdit={(student) => {
+              setEditingStudent(student);
+              setIsOpen(true);
+            }}
+            onDelete={(id) => deleteStudent.mutate(id)}
+          />
         </div>
       </main>
     </div>
