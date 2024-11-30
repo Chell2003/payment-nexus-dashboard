@@ -13,12 +13,11 @@ const StudentCard = () => {
           *,
           student:students(*)
         `)
-        .order('id', { ascending: false }) // Order by ID to get the latest entry
-        .limit(1)
-        .single();
+        .order('id', { ascending: false })
+        .limit(1);
 
       if (error) throw error;
-      return data;
+      return data?.[0] || null;
     },
   });
 
@@ -27,7 +26,16 @@ const StudentCard = () => {
   }
 
   if (!latestPayment?.student) {
-    return <div>No payment data available</div>;
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Latest Paid Student</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-500">No payment records found</p>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
