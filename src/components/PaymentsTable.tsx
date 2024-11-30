@@ -24,8 +24,7 @@ const PaymentsTable = () => {
           *,
           student:students(*)
         `)
-        .order('id', { ascending: false })
-        .returns<any[]>();  // Explicitly specify return type as array
+        .order('id', { ascending: false });
       
       if (error) throw error;
       return data || [];
