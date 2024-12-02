@@ -1,8 +1,11 @@
 import { Home, Users, CreditCard, FileText, LogOut } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   
   const links = [
     { icon: Home, label: "Dashboard", path: "/" },
@@ -10,6 +13,16 @@ const Sidebar = () => {
     { icon: CreditCard, label: "Payments", path: "/payments" },
     { icon: FileText, label: "Reports", path: "/reports" },
   ];
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate("/login");
+      toast.success("Logged out successfully");
+    } catch (error) {
+      toast.error("Error logging out");
+    }
+  };
 
   return (
     <div className="h-screen w-64 bg-white border-r border-gray-200 fixed left-0 top-0">
@@ -47,7 +60,10 @@ const Sidebar = () => {
         </nav>
 
         <div className="p-4 border-t border-gray-200">
-          <button className="flex items-center gap-3 px-4 py-2 w-full text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-2 w-full text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          >
             <LogOut size={20} />
             <span>Logout</span>
           </button>
