@@ -37,7 +37,7 @@ const StudentsSearch = ({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Sections</SelectItem>
-          <SelectItem value="BSCS 2-3">BSCS 2-3</SelectItem>
+          <SelectItem value="BSCS 2 - 3">BSCS 2 - 3</SelectItem>
         </SelectContent>
       </Select>
     </div>
