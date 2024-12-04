@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -6,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 
 interface StudentsSearchProps {
   searchQuery: string;
@@ -20,6 +22,23 @@ const StudentsSearch = ({
   selectedSection,
   onSectionChange,
 }: StudentsSearchProps) => {
+  const { data: sections = [] } = useQuery({
+    queryKey: ['sections'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('students')
+        .select('yearandsection')
+        .not('yearandsection', 'is', null)
+        .order('yearandsection');
+      
+      if (error) throw error;
+      
+      // Get unique sections and remove any nulls
+      const uniqueSections = [...new Set(data.map(item => item.yearandsection))].filter(Boolean);
+      return uniqueSections;
+    }
+  });
+
   return (
     <div className="flex gap-4 mb-6">
       <div className="flex-1">
@@ -37,7 +56,11 @@ const StudentsSearch = ({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Sections</SelectItem>
-          <SelectItem value="BSCS 2 - 3">BSCS 2 - 3</SelectItem>
+          {sections.map((section) => (
+            <SelectItem key={section} value={section}>
+              {section}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>
