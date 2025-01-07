@@ -16,7 +16,7 @@ const Login = () => {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         if (sessionError) {
           console.error('Session error:', sessionError);
-          toast.error('Error checking authentication status');
+          setError('Error checking authentication status');
           return;
         }
         if (session) {
@@ -24,21 +24,17 @@ const Login = () => {
         }
       } catch (err) {
         console.error('Auth error:', err);
-        toast.error('Authentication error occurred');
+        setError('Authentication error occurred');
       }
     };
 
-    // Check initial session
     checkSession();
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN') {
+      if (event === 'SIGNED_IN' && session) {
         navigate("/");
-      } else if (event === 'SIGNED_OUT') {
-        navigate("/login");
       }
     });
 
