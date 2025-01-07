@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from '@supabase/supabase-js';
+import { toast } from "sonner";
 import Index from "./pages/Index";
 import Students from "./pages/Students";
 import Payments from "./pages/Payments";
@@ -21,24 +22,49 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
+    const getInitialSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error fetching session:', error);
+          toast.error('Error authenticating user');
+          setSession(null);
+        } else {
+          setSession(data.session);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        toast.error('Error authenticating user');
+        setSession(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getInitialSession();
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setLoading(false);
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      try {
+        setSession(session);
+      } catch (err) {
+        console.error('Auth state change error:', err);
+        toast.error('Authentication error occurred');
+        setSession(null);
+      } finally {
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="flex items-center justify-center min-h-screen">
+      <div className="text-lg">Loading...</div>
+    </div>;
   }
 
   return session ? <>{children}</> : <Navigate to="/login" />;
