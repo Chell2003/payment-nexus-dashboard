@@ -16,7 +16,7 @@ const Login = () => {
         case 400:
           switch (error.message) {
             case "Invalid login credentials":
-              return "Invalid email or password. Please check your credentials.";
+              return "Invalid email or password. Please check your credentials and try again.";
             case "Invalid Refresh Token: Refresh Token Not Found":
               return "Your session has expired. Please sign in again.";
             default:
@@ -24,6 +24,8 @@ const Login = () => {
           }
         case 422:
           return "Invalid email format. Please check your email address.";
+        case 429:
+          return "Too many login attempts. Please try again later.";
         default:
           return "An authentication error occurred. Please try again.";
       }
@@ -48,7 +50,7 @@ const Login = () => {
         if (err instanceof AuthError) {
           setError(getErrorMessage(err));
         } else {
-          setError('An unexpected error occurred');
+          setError('An unexpected error occurred. Please try again.');
         }
       }
     };
@@ -64,6 +66,9 @@ const Login = () => {
       if (event === 'SIGNED_OUT') {
         setError(null);
       }
+      if (event === 'USER_UPDATED') {
+        checkSession();
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -77,11 +82,11 @@ const Login = () => {
             ACS Manager Login
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Please sign up for a new account or sign in with your existing credentials
+            Please sign in with your email and password
           </p>
         </div>
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="mb-4">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
