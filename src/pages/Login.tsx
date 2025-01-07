@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AuthError, AuthApiError } from "@supabase/supabase-js";
+import { toast } from "sonner";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -17,6 +18,8 @@ const Login = () => {
           switch (error.message) {
             case "Invalid login credentials":
               return "Invalid email or password. Please check your credentials and try again.";
+            case "Email not confirmed":
+              return "Please verify your email address before signing in.";
             case "Invalid Refresh Token: Refresh Token Not Found":
               return "Your session has expired. Please sign in again.";
             default:
@@ -61,6 +64,7 @@ const Login = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
+        toast.success('Successfully signed in!');
         navigate("/");
       }
       if (event === 'SIGNED_OUT') {
