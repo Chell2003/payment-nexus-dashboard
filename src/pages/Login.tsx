@@ -1,19 +1,48 @@
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if user is already logged in
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          toast.error('Error checking authentication status');
+          return;
+        }
+        if (session) {
+          navigate("/");
+        }
+      } catch (err) {
+        console.error('Auth error:', err);
+        toast.error('Authentication error occurred');
+      }
+    };
+
+    // Check initial session
+    checkSession();
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN') {
         navigate("/");
+      } else if (event === 'SIGNED_OUT') {
+        navigate("/login");
       }
     });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   return (
@@ -27,6 +56,11 @@ const Login = () => {
             Please sign up for a new account or sign in with your existing credentials
           </p>
         </div>
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         <div className="mt-8 bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <Auth
             supabaseClient={supabase}
