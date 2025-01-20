@@ -27,9 +27,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         const { data, error } = await supabase.auth.getSession();
         if (error) {
           console.error('Error fetching session:', error);
-          if (error.message.includes('Refresh Token Not Found')) {
-            await supabase.auth.signOut(); // Clear any invalid session data
-          }
           toast.error('Error authenticating user');
           setSession(null);
         } else {
@@ -51,9 +48,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       try {
-        if (_event === 'TOKEN_REFRESHED') {
-          console.log('Token refreshed successfully');
-        }
         setSession(session);
       } catch (err) {
         console.error('Auth state change error:', err);
