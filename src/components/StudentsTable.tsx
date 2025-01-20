@@ -1,6 +1,9 @@
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Tables } from "@/integrations/supabase/types";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { useState } from "react";
+import StudentUpdateRequestForm from "./StudentUpdateRequestForm";
 
 interface StudentsTableProps {
   students: Tables<'students'>[];
@@ -10,6 +13,9 @@ interface StudentsTableProps {
 }
 
 const StudentsTable = ({ students, isLoading, onEdit, onDelete }: StudentsTableProps) => {
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<Tables<'students'> | null>(null);
+
   if (isLoading) {
     return (
       <TableRow>
@@ -31,45 +37,68 @@ const StudentsTable = ({ students, isLoading, onEdit, onDelete }: StudentsTableP
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Student Number</TableHead>
-          <TableHead>Name</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Year & Section</TableHead>
-          <TableHead className="text-right">Action</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {students.map((student) => (
-          <TableRow key={student.id}>
-            <TableCell>{student.student_number}</TableCell>
-            <TableCell>{student.name}</TableCell>
-            <TableCell>{student.email}</TableCell>
-            <TableCell>{student.yearandsection}</TableCell>
-            <TableCell className="text-right space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
-                onClick={() => onEdit(student)}
-              >
-                Update
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
-                onClick={() => onDelete(student.id)}
-              >
-                Delete
-              </Button>
-            </TableCell>
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Student Number</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Year & Section</TableHead>
+            <TableHead className="text-right">Action</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {students.map((student) => (
+            <TableRow key={student.id}>
+              <TableCell>{student.student_number}</TableCell>
+              <TableCell>{student.name}</TableCell>
+              <TableCell>{student.email}</TableCell>
+              <TableCell>{student.yearandsection}</TableCell>
+              <TableCell className="text-right space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
+                  onClick={() => onEdit(student)}
+                >
+                  Update
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                  onClick={() => onDelete(student.id)}
+                >
+                  Delete
+                </Button>
+                <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-200"
+                      onClick={() => setSelectedStudent(student)}
+                    >
+                      Request Update
+                    </Button>
+                  </DialogTrigger>
+                  {selectedStudent && (
+                    <StudentUpdateRequestForm
+                      student={selectedStudent}
+                      onClose={() => {
+                        setIsUpdateDialogOpen(false);
+                        setSelectedStudent(null);
+                      }}
+                    />
+                  )}
+                </Dialog>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </>
   );
 };
 
