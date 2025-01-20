@@ -59,56 +59,6 @@ export type Database = {
           },
         ]
       }
-      student_update_requests: {
-        Row: {
-          admin_notes: string | null
-          created_at: string | null
-          id: number
-          request_date: string | null
-          requested_email: string | null
-          requested_name: string | null
-          requested_phone: string | null
-          requested_yearandsection: string | null
-          status: Database["public"]["Enums"]["request_status"] | null
-          student_id: number
-          updated_at: string | null
-        }
-        Insert: {
-          admin_notes?: string | null
-          created_at?: string | null
-          id?: number
-          request_date?: string | null
-          requested_email?: string | null
-          requested_name?: string | null
-          requested_phone?: string | null
-          requested_yearandsection?: string | null
-          status?: Database["public"]["Enums"]["request_status"] | null
-          student_id: number
-          updated_at?: string | null
-        }
-        Update: {
-          admin_notes?: string | null
-          created_at?: string | null
-          id?: number
-          request_date?: string | null
-          requested_email?: string | null
-          requested_name?: string | null
-          requested_phone?: string | null
-          requested_yearandsection?: string | null
-          status?: Database["public"]["Enums"]["request_status"] | null
-          student_id?: number
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "student_update_requests_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "students"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       students: {
         Row: {
           email: string | null
