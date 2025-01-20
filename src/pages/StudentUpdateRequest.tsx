@@ -1,14 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Save } from "lucide-react";
+import { Save } from "lucide-react";
 
 const StudentUpdateRequest = () => {
-  const navigate = useNavigate();
   const [studentNumber, setStudentNumber] = useState("");
   const [formData, setFormData] = useState({
     name: "",
@@ -49,7 +47,6 @@ const StudentUpdateRequest = () => {
       if (submitError) throw submitError;
       
       toast.success("Update request submitted successfully!");
-      navigate('/');
     } catch (error) {
       console.error('Error:', error);
       toast.error("Failed to submit update request");
@@ -59,15 +56,6 @@ const StudentUpdateRequest = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-2xl mx-auto">
-        <Button
-          variant="outline"
-          className="mb-6"
-          onClick={() => navigate('/')}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Request Information Update
