@@ -12,6 +12,7 @@ import Students from "./pages/Students";
 import Payments from "./pages/Payments";
 import Reports from "./pages/Reports";
 import Login from "./pages/Login";
+import UpdateRequest from "./pages/UpdateRequest";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/update-request" element={<UpdateRequest />} />
           <Route
             path="/"
             element={
