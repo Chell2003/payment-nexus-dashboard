@@ -4,11 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const StudentUpdateRequestForm = () => {
   const [studentNumber, setStudentNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [student, setStudent] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     requested_name: "",
     requested_email: "",
@@ -19,6 +21,8 @@ const StudentUpdateRequestForm = () => {
   const handleStudentSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
+    
     try {
       const { data, error } = await supabase
         .from("students")
@@ -27,10 +31,12 @@ const StudentUpdateRequestForm = () => {
         .single();
 
       if (error) throw error;
+      
       if (!data) {
-        toast.error("Student not found");
+        setError("Student not found");
         return;
       }
+      
       setStudent(data);
       setFormData({
         requested_name: data.name || "",
@@ -38,7 +44,9 @@ const StudentUpdateRequestForm = () => {
         requested_phone: data.phone || "",
         requested_yearandsection: data.yearandsection || "",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error finding student:", error);
+      setError(error.message);
       toast.error("Error finding student");
     } finally {
       setLoading(false);
@@ -53,6 +61,8 @@ const StudentUpdateRequestForm = () => {
     }
 
     setLoading(true);
+    setError(null);
+
     try {
       const { error } = await supabase.from("student_update_requests").insert([
         {
@@ -62,6 +72,7 @@ const StudentUpdateRequestForm = () => {
       ]);
 
       if (error) throw error;
+
       toast.success("Update request submitted successfully");
       // Reset form
       setStudent(null);
@@ -72,7 +83,9 @@ const StudentUpdateRequestForm = () => {
         requested_phone: "",
         requested_yearandsection: "",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error submitting update request:", error);
+      setError(error.message);
       toast.error("Error submitting update request");
     } finally {
       setLoading(false);
@@ -87,6 +100,12 @@ const StudentUpdateRequestForm = () => {
           Submit a request to update your student information
         </p>
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       {!student ? (
         <form onSubmit={handleStudentSearch} className="space-y-4">
@@ -165,6 +184,7 @@ const StudentUpdateRequestForm = () => {
               onClick={() => {
                 setStudent(null);
                 setStudentNumber("");
+                setError(null);
               }}
             >
               Search Different Student
