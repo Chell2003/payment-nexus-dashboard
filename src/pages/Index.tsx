@@ -19,13 +19,16 @@ const Index = () => {
           table: 'student_update_requests'
         },
         (payload) => {
+          console.log('New update request received:', payload);
           // Show a toast notification when a new request is received
-          toast.info("New Update Request", {
-            description: `A new student update request has been submitted.`,
+          toast('New Update Request', {
+            description: 'A new student update request has been submitted.',
             action: {
-              label: "View",
-              onClick: () => window.location.href = "/students"
-            }
+              label: 'View',
+              onClick: () => window.location.href = '/students'
+            },
+            duration: 5000,
+            position: 'top-right'
           });
         }
       )
