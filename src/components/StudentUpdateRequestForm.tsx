@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+type RequestStatus = "pending" | "approved" | "rejected";
+
 const StudentUpdateRequestForm = () => {
   const navigate = useNavigate();
   const [studentNumber, setStudentNumber] = useState("");
@@ -18,7 +20,7 @@ const StudentUpdateRequestForm = () => {
     phone: "",
     yearandsection: "",
   });
-  const [status, setStatus] = useState("pending");
+  const [status, setStatus] = useState<RequestStatus>("pending");
 
   useEffect(() => {
     const fetchStudent = async () => {
@@ -57,16 +59,14 @@ const StudentUpdateRequestForm = () => {
     if (!student) return;
 
     try {
-      const { error } = await supabase.from("student_update_requests").insert([
-        {
-          student_id: student.id,
-          requested_name: formData.name !== student.name ? formData.name : null,
-          requested_email: formData.email !== student.email ? formData.email : null,
-          requested_phone: formData.phone !== student.phone ? formData.phone : null,
-          requested_yearandsection: formData.yearandsection !== student.yearandsection ? formData.yearandsection : null,
-          status: status,
-        },
-      ]);
+      const { error } = await supabase.from("student_update_requests").insert({
+        student_id: student.id,
+        requested_name: formData.name !== student.name ? formData.name : null,
+        requested_email: formData.email !== student.email ? formData.email : null,
+        requested_phone: formData.phone !== student.phone ? formData.phone : null,
+        requested_yearandsection: formData.yearandsection !== student.yearandsection ? formData.yearandsection : null,
+        status: status,
+      });
 
       if (error) throw error;
 
@@ -140,7 +140,7 @@ const StudentUpdateRequestForm = () => {
             <Label>Request Status</Label>
             <RadioGroup
               value={status}
-              onValueChange={setStatus}
+              onValueChange={(value) => setStatus(value as RequestStatus)}
               className="flex space-x-4"
             >
               <div className="flex items-center space-x-2">
