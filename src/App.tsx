@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import Students from "./pages/Students";
 import Payments from "./pages/Payments";
 import Reports from "./pages/Reports";
+import Notifications from "./pages/Notifications";
 import Login from "./pages/Login";
 import UpdateRequest from "./pages/UpdateRequest";
 
@@ -109,6 +110,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Reports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <Notifications />
               </ProtectedRoute>
             }
           />

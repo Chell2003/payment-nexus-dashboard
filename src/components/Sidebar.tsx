@@ -1,4 +1,4 @@
-import { Home, Users, CreditCard, FileText, LogOut } from "lucide-react";
+import { Home, Users, CreditCard, FileText, LogOut, Bell } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ const Sidebar = () => {
     { icon: Users, label: "Students", path: "/students" },
     { icon: CreditCard, label: "Payments", path: "/payments" },
     { icon: FileText, label: "Reports", path: "/reports" },
+    { icon: Bell, label: "Notifications", path: "/notifications" },
   ];
 
   const handleLogout = async () => {
