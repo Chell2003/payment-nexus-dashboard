@@ -2,8 +2,41 @@ import Sidebar from "@/components/Sidebar";
 import StudentCard from "@/components/StudentCard";
 import StudentChart from "@/components/StudentChart";
 import PaymentsTable from "@/components/PaymentsTable";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Index = () => {
+  useEffect(() => {
+    // Subscribe to real-time updates for student_update_requests
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'student_update_requests'
+        },
+        (payload) => {
+          // Show a toast notification when a new request is received
+          toast.info("New Update Request", {
+            description: `A new student update request has been submitted.`,
+            action: {
+              label: "View",
+              onClick: () => window.location.href = "/students"
+            }
+          });
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on component unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
