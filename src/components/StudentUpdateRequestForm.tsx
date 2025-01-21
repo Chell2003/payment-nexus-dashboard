@@ -1,197 +1,170 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const StudentUpdateRequestForm = () => {
+  const navigate = useNavigate();
   const [studentNumber, setStudentNumber] = useState("");
-  const [loading, setLoading] = useState(false);
   const [student, setStudent] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    requested_name: "",
-    requested_email: "",
-    requested_phone: "",
-    requested_yearandsection: "",
+    name: "",
+    email: "",
+    phone: "",
+    yearandsection: "",
   });
+  const [status, setStatus] = useState("pending");
 
-  const handleStudentSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    
-    try {
+  useEffect(() => {
+    const fetchStudent = async () => {
+      if (!studentNumber) return;
+      
+      setLoading(true);
       const { data, error } = await supabase
         .from("students")
         .select("*")
         .eq("student_number", studentNumber)
         .single();
 
-      if (error) throw error;
-      
-      if (!data) {
-        setError("Student not found");
+      if (error) {
+        toast.error("Error finding student");
+        setLoading(false);
         return;
       }
-      
-      setStudent(data);
-      setFormData({
-        requested_name: data.name || "",
-        requested_email: data.email || "",
-        requested_phone: data.phone || "",
-        requested_yearandsection: data.yearandsection || "",
-      });
-    } catch (error: any) {
-      console.error("Error finding student:", error);
-      setError(error.message);
-      toast.error("Error finding student");
-    } finally {
+
+      if (data) {
+        setStudent(data);
+        setFormData({
+          name: data.name || "",
+          email: data.email || "",
+          phone: data.phone || "",
+          yearandsection: data.yearandsection || "",
+        });
+      }
       setLoading(false);
-    }
-  };
+    };
+
+    fetchStudent();
+  }, [studentNumber]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!student) {
-      toast.error("Please search for a student first");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
+    if (!student) return;
 
     try {
       const { error } = await supabase.from("student_update_requests").insert([
         {
           student_id: student.id,
-          ...formData,
+          requested_name: formData.name !== student.name ? formData.name : null,
+          requested_email: formData.email !== student.email ? formData.email : null,
+          requested_phone: formData.phone !== student.phone ? formData.phone : null,
+          requested_yearandsection: formData.yearandsection !== student.yearandsection ? formData.yearandsection : null,
+          status: status,
         },
       ]);
 
       if (error) throw error;
 
       toast.success("Update request submitted successfully");
-      // Reset form
-      setStudent(null);
-      setStudentNumber("");
-      setFormData({
-        requested_name: "",
-        requested_email: "",
-        requested_phone: "",
-        requested_yearandsection: "",
-      });
-    } catch (error: any) {
-      console.error("Error submitting update request:", error);
-      setError(error.message);
+      navigate("/");
+    } catch (error) {
       toast.error("Error submitting update request");
-    } finally {
-      setLoading(false);
+      console.error("Error:", error);
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-8">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">Student Information Update Request</h1>
-        <p className="text-gray-500 mt-2">
-          Submit a request to update your student information
-        </p>
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
+      <h1 className="text-2xl font-bold mb-6">Student Information Update Request</h1>
+      
+      <div className="mb-6">
+        <Label htmlFor="studentNumber">Student Number</Label>
+        <Input
+          id="studentNumber"
+          value={studentNumber}
+          onChange={(e) => setStudentNumber(e.target.value)}
+          placeholder="Enter student number"
+          className="mt-1"
+        />
       </div>
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {!student ? (
-        <form onSubmit={handleStudentSearch} className="space-y-4">
+      {student && (
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <Label htmlFor="student_number">Student Number</Label>
+            <Label htmlFor="name">Name</Label>
             <Input
-              id="student_number"
-              value={studentNumber}
-              onChange={(e) => setStudentNumber(e.target.value)}
-              placeholder="Enter your student number"
-              required
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="mt-1"
             />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Searching..." : "Search Student"}
+
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="phone">Phone</Label>
+            <Input
+              id="phone"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="yearandsection">Year and Section</Label>
+            <Input
+              id="yearandsection"
+              value={formData.yearandsection}
+              onChange={(e) => setFormData({ ...formData, yearandsection: e.target.value })}
+              className="mt-1"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Request Status</Label>
+            <RadioGroup
+              value={status}
+              onValueChange={setStatus}
+              className="flex space-x-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="pending" id="pending" />
+                <Label htmlFor="pending">Pending</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="approved" id="approved" />
+                <Label htmlFor="approved">Approved</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="rejected" id="rejected" />
+                <Label htmlFor="rejected">Rejected</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <Button type="submit" className="w-full">
+            Submit Update Request
           </Button>
         </form>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="requested_name">Name</Label>
-            <Input
-              id="requested_name"
-              value={formData.requested_name}
-              onChange={(e) =>
-                setFormData({ ...formData, requested_name: e.target.value })
-              }
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="requested_email">Email</Label>
-            <Input
-              id="requested_email"
-              type="email"
-              value={formData.requested_email}
-              onChange={(e) =>
-                setFormData({ ...formData, requested_email: e.target.value })
-              }
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="requested_phone">Phone</Label>
-            <Input
-              id="requested_phone"
-              value={formData.requested_phone}
-              onChange={(e) =>
-                setFormData({ ...formData, requested_phone: e.target.value })
-              }
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="requested_yearandsection">Year and Section</Label>
-            <Input
-              id="requested_yearandsection"
-              value={formData.requested_yearandsection}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  requested_yearandsection: e.target.value,
-                })
-              }
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Submitting..." : "Submit Update Request"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                setStudent(null);
-                setStudentNumber("");
-                setError(null);
-              }}
-            >
-              Search Different Student
-            </Button>
-          </div>
-        </form>
       )}
+
+      {loading && <p className="text-center mt-4">Loading...</p>}
     </div>
   );
 };
